@@ -22,9 +22,7 @@ public class Main {
         int opcion;
 
         do {
-            System.out.println("============================================");
-            System.out.println("   SISTEMA DE GESTIÓN DE INVENTARIOS");
-            System.out.println("============================================");
+            System.out.println("   GESTIÓN DE INVENTARIOS");
             System.out.println("  1. Agregar producto al inicio");
             System.out.println("  2. Agregar producto al final");
             System.out.println("  3. Ver todos los productos");
@@ -34,7 +32,6 @@ public class Main {
             System.out.println("  7. Eliminar producto");
             System.out.println("  8. Generar reporte de costos");
             System.out.println("  9. Salir");
-            System.out.println("--------------------------------------------");
             System.out.print("  Seleccione una opción: ");
 
             opcion = leerEntero(scanner);
@@ -58,7 +55,7 @@ public class Main {
         } while (opcion != 9);
     }
 
-    // ===================== MÉTODOS AUXILIARES DEL MENÚ =====================
+    // UTILS
 
     /**
      * Lee un número entero desde el scanner, manejando entradas inválidas.
@@ -133,28 +130,69 @@ public class Main {
     }
 
     /**
-     * Intenta parsear un String a double. Si falla, retorna el valor por defecto.
+     * Valida que una ruta de imagen pertenezca al directorio images del proyecto.
+     * @param ruta Ruta a validar
+     * @return true si la ruta es válida
      */
-    private static double parseDoubleSeguro(String valor, double defecto) {
-        try {
-            return Double.parseDouble(valor);
-        } catch (NumberFormatException e) {
-            return defecto;
+    private static boolean validarRutaImagen(String ruta) {
+        return ruta != null && !ruta.isBlank() && ruta.startsWith("images/") && !ruta.equals("images/");
+    }
+
+    /**
+     * Verifica si un nombre ya pertenece a otro producto de la lista.
+     */
+    private static boolean existeOtroProductoConNombre(ListaProductos lista, String nombre, String nombreActual) {
+        NodoProducto encontrado = lista.buscar(nombre);
+        return encontrado != null && !encontrado.getProducto().getNombre().equalsIgnoreCase(nombreActual);
+    }
+
+    /**
+     * Lee un precio opcional desde una línea de texto. Si el usuario deja vacío,
+     * conserva el valor actual. Si escribe un dato inválido, vuelve a solicitarlo.
+     */
+    private static double leerPrecioOpcional(Scanner scanner, double valorActual) {
+        while (true) {
+            String entrada = scanner.nextLine().trim();
+            if (entrada.isEmpty()) {
+                return valorActual;
+            }
+
+            try {
+                double precio = Double.parseDouble(entrada);
+                if (validarPrecio(precio)) {
+                    return precio;
+                }
+                System.out.print("  ERROR: El precio debe ser mayor a cero. Ingrese nuevamente: ");
+            } catch (NumberFormatException e) {
+                System.out.print("  ERROR: Debe ingresar un número válido. Ingrese nuevamente: ");
+            }
         }
     }
 
     /**
-     * Intenta parsear un String a int. Si falla, retorna el valor por defecto.
+     * Lee una cantidad opcional desde una línea de texto. Si el usuario deja vacío,
+     * conserva el valor actual. Si escribe un dato inválido, vuelve a solicitarlo.
      */
-    private static int parseIntSeguro(String valor, int defecto) {
-        try {
-            return Integer.parseInt(valor);
-        } catch (NumberFormatException e) {
-            return defecto;
+    private static int leerCantidadOpcional(Scanner scanner, int valorActual) {
+        while (true) {
+            String entrada = scanner.nextLine().trim();
+            if (entrada.isEmpty()) {
+                return valorActual;
+            }
+
+            try {
+                int cantidad = Integer.parseInt(entrada);
+                if (validarCantidad(cantidad)) {
+                    return cantidad;
+                }
+                System.out.print("  ERROR: La cantidad no puede ser negativa. Ingrese nuevamente: ");
+            } catch (NumberFormatException e) {
+                System.out.print("  ERROR: Debe ingresar un número entero válido. Ingrese nuevamente: ");
+            }
         }
     }
 
-    // ===================== OPERACIONES DEL MENÚ =====================
+    // Menu
 
     /**
      * Solicita los datos de un producto con validaciones y lo agrega a la lista.
@@ -165,7 +203,7 @@ public class Main {
      * @param alInicio true → inserta al inicio, false → al final
      */
     private static void agregarProducto(Scanner scanner, ListaProductos lista, boolean alInicio) {
-        System.out.println("  --- AGREGAR PRODUCTO ---");
+        System.out.println("  AGREGAR PRODUCTO ");
 
         // Validar nombre (no vacío, sin duplicados)
         // NOTA: la primera lectura usa leerTexto() para consumir el \n pendiente
@@ -235,7 +273,7 @@ public class Main {
      * Busca un producto por nombre y muestra sus datos.
      */
     private static void buscarProducto(Scanner scanner, ListaProductos lista) {
-        System.out.println("  --- BUSCAR PRODUCTO ---");
+        System.out.println("  BUSCAR PRODUCTO ");
         System.out.print("  Nombre del producto: ");
         String nombre = leerTexto(scanner);
 
@@ -257,7 +295,7 @@ public class Main {
      * Permite dejar campos vacíos para conservar el valor actual.
      */
     private static void modificarProducto(Scanner scanner, ListaProductos lista) {
-        System.out.println("  --- MODIFICAR PRODUCTO ---");
+        System.out.println("  MODIFICAR PRODUCTO ");
         System.out.print("  Nombre del producto a modificar: ");
         String nombreActual = leerTexto(scanner);
 
@@ -275,18 +313,24 @@ public class Main {
 
         System.out.print("  Nuevo nombre [" + original.getNombre() + "]: ");
         String nombre = scanner.nextLine().trim();
-        if (nombre.isEmpty()) nombre = original.getNombre();
+        if (nombre.isEmpty()) {
+            nombre = original.getNombre();
+        }
+        while (!validarNombre(nombre) || existeOtroProductoConNombre(lista, nombre, nombreActual)) {
+            if (!validarNombre(nombre)) {
+                System.out.println("  ERROR: El nombre no puede estar vacío.");
+            } else {
+                System.out.println("  ERROR: Ya existe otro producto con ese nombre.");
+            }
+            System.out.print("  Nuevo nombre [" + original.getNombre() + "]: ");
+            nombre = scanner.nextLine().trim();
+            if (nombre.isEmpty()) {
+                nombre = original.getNombre();
+            }
+        }
 
         System.out.print("  Nuevo precio [" + String.format("%.2f", original.getPrecio()) + "]: ");
-        String precioStr = scanner.nextLine().trim();
-        double precio = parseDoubleSeguro(precioStr, original.getPrecio());
-        while (!validarPrecio(precio)) {
-            System.out.print("  ERROR: Precio debe ser > 0. Ingrese nuevamente: ");
-            precioStr = scanner.nextLine().trim();
-            if (precioStr.isEmpty()) { precio = original.getPrecio(); break; }
-            precio = parseDoubleSeguro(precioStr, original.getPrecio());
-            if (precio == original.getPrecio() && !precioStr.isEmpty()) continue;
-        }
+        double precio = leerPrecioOpcional(scanner, original.getPrecio());
 
         System.out.print("  Nueva categoría [" + original.getCategoria() + "]: ");
         String categoria = scanner.nextLine().trim();
@@ -300,20 +344,7 @@ public class Main {
         }
 
         System.out.print("  Nueva cantidad [" + original.getCantidad() + "]: ");
-        String cantStr = scanner.nextLine().trim();
-        int cantidad;
-        if (cantStr.isEmpty()) {
-            cantidad = original.getCantidad();
-        } else {
-            cantidad = parseIntSeguro(cantStr, original.getCantidad());
-            while (!validarCantidad(cantidad)) {
-                System.out.print("  ERROR: Cantidad no puede ser negativa. Ingrese nuevamente: ");
-                String retry = scanner.nextLine().trim();
-                if (retry.isEmpty()) { cantidad = original.getCantidad(); break; }
-                cantidad = parseIntSeguro(retry, original.getCantidad());
-                if (cantidad == original.getCantidad() && !retry.isEmpty()) continue;
-            }
-        }
+        int cantidad = leerCantidadOpcional(scanner, original.getCantidad());
 
         Producto nuevosDatos = new Producto(nombre, precio, categoria, fechaVencimiento, cantidad);
         boolean exito = lista.modificarProducto(nombreActual, nuevosDatos);
@@ -332,7 +363,7 @@ public class Main {
      * Agrega una ruta de imagen a la lista de imágenes de un producto.
      */
     private static void agregarImagen(Scanner scanner, ListaProductos lista) {
-        System.out.println("  --- AGREGAR IMAGEN ---");
+        System.out.println("  AGREGAR IMAGEN ");
         System.out.print("  Nombre del producto: ");
         String nombre = leerTexto(scanner);
 
@@ -346,10 +377,17 @@ public class Main {
 
         System.out.print("  Ruta de la imagen (ej: images/producto.jpg): ");
         String ruta = scanner.nextLine().trim();
+        while (!validarRutaImagen(ruta)) {
+            System.out.println("  ERROR: La ruta debe iniciar con images/ y no puede estar vacía.");
+            System.out.print("  Ruta de la imagen (ej: images/producto.jpg): ");
+            ruta = scanner.nextLine().trim();
+        }
 
         boolean exito = lista.agregarImagen(nombre, ruta);
         if (exito) {
             System.out.println("  Imagen agregada correctamente.");
+        } else {
+            System.out.println("  Error al agregar la imagen.");
         }
 
         System.out.print("  Presione Enter para continuar...");
@@ -360,7 +398,7 @@ public class Main {
      * Elimina un producto de la lista previa confirmación del usuario.
      */
     private static void eliminarProducto(Scanner scanner, ListaProductos lista) {
-        System.out.println("  --- ELIMINAR PRODUCTO ---");
+        System.out.println("  ELIMINAR PRODUCTO ");
         System.out.print("  Nombre del producto a eliminar: ");
         String nombre = leerTexto(scanner);
 
@@ -392,7 +430,6 @@ public class Main {
         scanner.nextLine();
     }
 
-    // ===================== PUNTO DE ENTRADA =====================
 
     /**
      * Método principal. Muestra el encabezado del programa,
@@ -400,14 +437,7 @@ public class Main {
      */
     public static void main(String[] args) {
         System.out.println();
-        System.out.println("╔══════════════════════════════════════════════════╗");
-        System.out.println("║     SISTEMA DE GESTIÓN DE INVENTARIOS           ║");
-        System.out.println("╠══════════════════════════════════════════════════╣");
-        System.out.println("║  Curso: Estructuras de Datos (SOFT-10)          ║");
-        System.out.println("║  Sección: SCV5          Periodo: C2-2026       ║");
-        System.out.println("║  Docente: Romario Salas Cerdas                  ║");
-        System.out.println("║  Primer Avance — ListaEnlazada Simple          ║");
-        System.out.println("╚══════════════════════════════════════════════════╝");
+        System.out.println("     SISTEMA DE GESTIÓN DE INVENTARIOS           ");
         System.out.println();
 
         ListaProductos inventario = new ListaProductos();

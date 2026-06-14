@@ -92,9 +92,15 @@ public class Producto {
     /**
      * Agrega una ruta de imagen a la lista del producto.
      * @param ruta Ruta de la imagen dentro del proyecto
+     * @return true si la ruta se agregó correctamente
      */
-    public void agregarImagen(String ruta) {
-        listaImagenes.add(ruta);
+    public boolean agregarImagen(String ruta) {
+        if (ruta == null || ruta.isBlank()) {
+            return false;
+        }
+
+        listaImagenes.add(ruta.trim());
+        return true;
     }
 
     /**

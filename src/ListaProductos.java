@@ -14,9 +14,7 @@ public class ListaProductos {
         primero = null;
     }
 
-    // --------------------------------
     // Métodos de control
-    // --------------------------------
 
     /**
      * Verifica si la lista está vacía.
@@ -34,9 +32,7 @@ public class ListaProductos {
         this.primero = primero;
     }
 
-    // --------------------------------
     // Inserción
-    // --------------------------------
 
     /**
      * Inserta un nuevo producto al inicio de la lista.
@@ -67,9 +63,7 @@ public class ListaProductos {
         tmp.setSiguiente(nuevoNodo);
     }
 
-    // --------------------------------
     // Búsqueda
-    // --------------------------------
 
     /**
      * Busca un producto por su nombre (ignorando mayúsculas/minúsculas).
@@ -91,9 +85,7 @@ public class ListaProductos {
         return null;
     }
 
-    // --------------------------------
     // Modificación
-    // --------------------------------
 
     /**
      * Modifica los datos de un producto existente.
@@ -128,17 +120,14 @@ public class ListaProductos {
      */
     public boolean agregarImagen(String nombreProducto, String rutaImagen) {
         NodoProducto nodo = buscar(nombreProducto);
-        if (nodo == null) {
+        if (nodo == null || rutaImagen == null || rutaImagen.isBlank() || !rutaImagen.startsWith("images/")) {
             return false;
         }
 
-        nodo.getProducto().agregarImagen(rutaImagen);
-        return true;
+        return nodo.getProducto().agregarImagen(rutaImagen.trim());
     }
 
-    // --------------------------------
     // Eliminación
-    // --------------------------------
 
     /**
      * Elimina un producto de la lista por su nombre.
@@ -169,9 +158,7 @@ public class ListaProductos {
         return false;
     }
 
-    // --------------------------------
     // Listado
-    // --------------------------------
 
     /**
      * Imprime todos los productos de la lista en consola.
@@ -193,9 +180,7 @@ public class ListaProductos {
         System.out.println("Total de productos: " + (contador - 1) + "\n");
     }
 
-    // --------------------------------
     // Reporte de costos
-    // --------------------------------
 
     /**
      * Recorre la lista e imprime un reporte con el costo total de cada producto
@@ -207,10 +192,8 @@ public class ListaProductos {
             return;
         }
 
-        System.out.println("=== REPORTE DE COSTOS ===");
-        System.out.println("------------------------------------------------------------");
-        System.out.printf("%-20s %-10s %-10s %-12s%n", "Producto", "Precio", "Cantidad", "Costo Total");
-        System.out.println("------------------------------------------------------------");
+        System.out.println("REPORTE DE COSTOS");
+        System.out.printf("\n %-20s %-10s %-10s %-12s%n", "Producto", "Precio", "Cantidad", "Costo Total \n");
 
         double costoAcumulado = 0.0;
         NodoProducto tmp = primero;
@@ -225,8 +208,7 @@ public class ListaProductos {
             tmp = tmp.getSiguiente();
         }
 
-        System.out.println("------------------------------------------------------------");
-        System.out.printf("%-42s ₡%-10.2f%n", "COSTO TOTAL ACUMULADO:", costoAcumulado);
+        System.out.printf("\n %-42s ₡%-10.2f%n", "COSTO TOTAL ACUMULADO:", costoAcumulado);
         System.out.println();
     }
 }
